@@ -111,7 +111,7 @@ GooString *SignatureHandler::getDefaultFirefoxCertDB_Linux()
 /**
  * Initialise NSS
  */
-void SignatureHandler::init_nss() 
+void SignatureHandler::init_nss()
 {
   GooString *certDBPath = getDefaultFirefoxCertDB_Linux();
   if (certDBPath == nullptr) {
@@ -308,7 +308,7 @@ SECErrorCodes SignatureHandler::validateCertificate(time_t validation_time)
     vTime = 1000000*(PRTime)validation_time;
   CERTValInParam inParams[3];
   inParams[0].type = cert_pi_revocationFlags;
-  inParams[0].value.pointer.revocation = CERT_GetClassicOCSPEnabledSoftFailurePolicy();
+  inParams[0].value.pointer.revocation = CERT_GetPKIXVerifyNistRevocationPolicy();
   inParams[1].type = cert_pi_date;
   inParams[1].value.scalar.time = vTime;
   inParams[2].type = cert_pi_end;
