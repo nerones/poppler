@@ -15,6 +15,7 @@
 #define SIGNATUREINFO_H
 
 #include <time.h>
+#include <certt.h>
 
 enum SignatureValidationStatus
 {
@@ -49,6 +50,8 @@ public:
   CertificateValidationStatus getCertificateValStatus();
   const char *getSignerName();
   const char *getSubjectDN();
+  time_t getSignerCertBefore();
+  time_t getSignerCertAfter();
   int getHashAlgorithm(); // Returns a NSS3 HASH_HashType or -1 if compiled without NSS3
   time_t getSigningTime();
   bool isSubfilterSupported() { return sig_subfilter_supported; }
@@ -57,6 +60,8 @@ public:
   void setSignatureValStatus(enum SignatureValidationStatus );
   void setCertificateValStatus(enum CertificateValidationStatus );
   void setSignerName(char *);
+  void setSignerCertBefore(time_t);
+  void setSignerCert(CERTCertificate);
   void setSubjectDN(const char *);
   void setHashAlgorithm(int);
   void setSigningTime(time_t);
@@ -69,6 +74,8 @@ private:
   SignatureValidationStatus sig_status;
   CertificateValidationStatus cert_status;
   char *signer_name;
+  time_t signer_cert_before;
+  CERTCertificate signer_cert;
   const char *subject_dn;
   int hash_type;
   time_t signing_time;

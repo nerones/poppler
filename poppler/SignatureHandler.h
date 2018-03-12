@@ -37,6 +37,8 @@ public:
   ~SignatureHandler();
   time_t getSigningTime();
   char * getSignerName();
+  time_t getSignerCertBefore();
+  CERTCertificate getSignerCert();
   const char * getSignerSubjectDN();
   HASH_HashType getHashAlgorithm();
   void setSignature(unsigned char *, int);

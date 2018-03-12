@@ -18,9 +18,11 @@
 #include "SignatureHandler.h"
 #include "goo/gmem.h"
 #include <secmod.h>
+#include <seccomon.h>
 
 #include <dirent.h>
 #include <Error.h>
+#include <secder.h>
 
 unsigned int SignatureHandler::digestLength(SECOidTag digestAlgId)
 {
@@ -50,13 +52,54 @@ char *SignatureHandler::getSignerName()
 
 const char * SignatureHandler::getSignerSubjectDN()
 {
-  if (!CMSSignerInfo)
-    return nullptr;
+    if (!CMSSignerInfo)
+        return nullptr;
 
-  CERTCertificate *cert = NSS_CMSSignerInfo_GetSigningCertificate(CMSSignerInfo, CERT_GetDefaultCertDB());
-  if (!cert)
-    return nullptr;
-  return cert->subjectName;
+    CERTCertificate *cert = NSS_CMSSignerInfo_GetSigningCertificate(CMSSignerInfo, CERT_GetDefaultCertDB());
+    if (!cert)
+        return nullptr;
+    return cert->subjectName;
+}
+
+time_t SignatureHandler::getSignerCertBefore()
+{
+    if (!CMSSignerInfo)
+        return 0;
+
+    CERTCertificate *cert = NSS_CMSSignerInfo_GetSigningCertificate(CMSSignerInfo, CERT_GetDefaultCertDB());
+    if (!cert)
+        return 0;
+
+    PRTime time;
+    SECStatus rv;
+    SECItem notBefore = cert->validity.notBefore;
+
+    switch (notBefore.type) {
+        case siUTCTime:
+            rv = DER_UTCTimeToTime(&time, &notBefore);
+            break;
+        case siGeneralizedTime:
+            rv = DER_GeneralizedTimeToTime(&time, &notBefore);
+            break;
+        default:
+            return 0;
+    }
+
+    if (rv != SECSuccess)
+        return 0;
+    return static_cast<time_t>(time/1000000);
+}
+
+CERTCertificate SignatureHandler::getSignerCert() {
+    //if (!CMSSignerInfo)
+    //    return NULL;
+
+    CERTCertificate *cert = NSS_CMSSignerInfo_GetSigningCertificate(CMSSignerInfo, CERT_GetDefaultCertDB());
+    if (!cert) {
+      //return NULL;
+    }
+
+    return *cert;
 }
 
 HASH_HashType SignatureHandler::getHashAlgorithm()

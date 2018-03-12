@@ -17,9 +17,14 @@
 #include "goo/gmem.h"
 #include <stdlib.h>
 #include <string.h>
+#include <seccomon.h>
+#include <secder.h>
 
 #ifdef ENABLE_NSS3
     #include <hasht.h>
+#include <secder.h>
+#include <iostream>
+
 #else
     static const int HASH_AlgNULL = -1;
 #endif
@@ -31,6 +36,8 @@ SignatureInfo::SignatureInfo()
   sig_status = SIGNATURE_NOT_VERIFIED;
   cert_status = CERTIFICATE_NOT_VERIFIED;
   signer_name = nullptr;
+  signer_cert_before = 0;
+  //signer_cert = ;
   subject_dn = nullptr;
   hash_type = HASH_AlgNULL;
   signing_time = 0;
@@ -42,6 +49,8 @@ SignatureInfo::SignatureInfo(SignatureValidationStatus sig_val_status, Certifica
   sig_status = sig_val_status;
   cert_status = cert_val_status;
   signer_name = nullptr;
+  signer_cert_before = 0;
+  //signer_cert;
   subject_dn = nullptr;
   hash_type = HASH_AlgNULL;
   signing_time = 0;
@@ -68,6 +77,63 @@ CertificateValidationStatus SignatureInfo::getCertificateValStatus()
 const char *SignatureInfo::getSignerName()
 {
   return signer_name;
+}
+
+time_t parseDate(SECItem);
+
+time_t parseDate(SECItem date)
+{
+
+    PRTime time;
+    SECStatus rv;
+
+    switch (date.type) {
+        case siUTCTime:
+            rv = DER_UTCTimeToTime(&time, &date);
+            break;
+        case siGeneralizedTime:
+            rv = DER_GeneralizedTimeToTime(&time, &date);
+            break;
+        default:
+            printf("devuelve 0");
+            return 0;
+    }
+
+    if (rv != SECSuccess)
+        return 0;
+    return static_cast<time_t>(time/1000000);
+
+}
+
+time_t SignatureInfo::getSignerCertBefore()
+{
+  return parseDate(signer_cert.validity.notBefore);
+  //return signer_cert_before;
+}
+
+time_t SignatureInfo::getSignerCertAfter() {
+    //if (!signer_cert)
+    //    return 0;
+
+    PRTime time;
+    SECStatus rv;
+    SECItem notBefore = signer_cert.validity.notAfter;
+
+    switch (notBefore.type) {
+        case siUTCTime:
+            rv = DER_UTCTimeToTime(&time, &notBefore);
+            break;
+        case siGeneralizedTime:
+            rv = DER_GeneralizedTimeToTime(&time, &notBefore);
+            break;
+        default:
+            printf("devuelve 0");
+            return 0;
+    }
+
+    if (rv != SECSuccess)
+        return 0;
+    return static_cast<time_t>(time/1000000);
 }
 
 const char *SignatureInfo::getSubjectDN()
@@ -101,6 +167,15 @@ void SignatureInfo::setSignerName(char *signerName)
 {
   free(signer_name);
   signer_name = signerName;
+}
+
+void SignatureInfo::setSignerCertBefore(time_t notBeforeTime)
+{
+  signer_cert_before = notBeforeTime;
+}
+
+void SignatureInfo::setSignerCert(CERTCertificate cert) {
+  signer_cert = cert;
 }
 
 void SignatureInfo::setSubjectDN(const char *subjectDN)

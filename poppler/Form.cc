@@ -1757,6 +1757,8 @@ SignatureInfo *FormFieldSignature::validateSignature(bool doVerifyCert, bool for
   sig_val_state = signature_handler.validateSignature();
   signature_info->setSignatureValStatus(SignatureHandler::NSS_SigTranslate(sig_val_state));
   signature_info->setSignerName(signature_handler.getSignerName());
+  signature_info->setSignerCertBefore(signature_handler.getSignerCertBefore());
+  signature_info->setSignerCert(signature_handler.getSignerCert());
   signature_info->setSubjectDN(signature_handler.getSignerSubjectDN());
   signature_info->setHashAlgorithm(signature_handler.getHashAlgorithm());
 
