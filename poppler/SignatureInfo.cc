@@ -20,6 +20,7 @@
 
 #ifdef ENABLE_NSS3
     #include <hasht.h>
+
 #else
     static const int HASH_AlgNULL = -1;
 #endif
@@ -31,6 +32,9 @@ SignatureInfo::SignatureInfo()
   sig_status = SIGNATURE_NOT_VERIFIED;
   cert_status = CERTIFICATE_NOT_VERIFIED;
   signer_name = nullptr;
+  serial_number = nullptr;
+  signer_cert_not_before = 0;
+  signer_cert_not_after = 0;
   subject_dn = nullptr;
   hash_type = HASH_AlgNULL;
   signing_time = 0;
@@ -42,6 +46,9 @@ SignatureInfo::SignatureInfo(SignatureValidationStatus sig_val_status, Certifica
   sig_status = sig_val_status;
   cert_status = cert_val_status;
   signer_name = nullptr;
+  serial_number = nullptr;
+  signer_cert_not_before = 0;
+  signer_cert_not_after = 0;
   subject_dn = nullptr;
   hash_type = HASH_AlgNULL;
   signing_time = 0;
@@ -51,6 +58,7 @@ SignatureInfo::SignatureInfo(SignatureValidationStatus sig_val_status, Certifica
 SignatureInfo::~SignatureInfo()
 {
   free(signer_name);
+  free(serial_number);
 }
 
 /* GETTERS */
@@ -68,6 +76,21 @@ CertificateValidationStatus SignatureInfo::getCertificateValStatus()
 const char *SignatureInfo::getSignerName()
 {
   return signer_name;
+}
+
+const char *SignatureInfo::getSerialNumber()
+{
+  return serial_number;
+}
+
+time_t SignatureInfo::getSignerCertNotBefore()
+{
+  return signer_cert_not_before;
+}
+
+time_t SignatureInfo::getSignerCertNotAfter()
+{
+  return signer_cert_not_after;
 }
 
 const char *SignatureInfo::getSubjectDN()
@@ -97,10 +120,26 @@ void SignatureInfo::setCertificateValStatus(enum CertificateValidationStatus cer
   cert_status = cert_val_status;
 }
 
+void SignatureInfo::setSerialNumber(char *serialNumber)
+{
+  free(serial_number);
+  serial_number = serialNumber;
+}
+
 void SignatureInfo::setSignerName(char *signerName)
 {
   free(signer_name);
   signer_name = signerName;
+}
+
+void SignatureInfo::setSignerCertNotBefore(time_t notBeforeTime)
+{
+    signer_cert_not_before = notBeforeTime;
+}
+
+void SignatureInfo::setSignerCertNotAfter(time_t notAfterTime)
+{
+  signer_cert_not_after = notAfterTime;
 }
 
 void SignatureInfo::setSubjectDN(const char *subjectDN)

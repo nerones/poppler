@@ -191,6 +191,9 @@ int main(int argc, char *argv[])
     printf("Signature #%u:\n", i+1);
     printf("  - Signer Certificate Common Name: %s\n", sig_info->getSignerName());
     printf("  - Signer full Distinguished Name: %s\n", sig_info->getSubjectDN());
+    printf("  - Signer Cert not before: %s\n", time_str = getReadableTime(sig_info->getSignerCertNotBefore()));
+    printf("  - Signer Cert not after: %s\n", time_str = getReadableTime(sig_info->getSignerCertNotAfter()));
+    printf("  - Signer Cert serial number: %s\n", sig_info->getSerialNumber());
     printf("  - Signing Time: %s\n", time_str = getReadableTime(sig_info->getSigningTime()));
     printf("  - Signing Hash Algorithm: ");
     switch (sig_info->getHashAlgorithm())

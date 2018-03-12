@@ -48,7 +48,10 @@ public:
   SignatureValidationStatus getSignatureValStatus();
   CertificateValidationStatus getCertificateValStatus();
   const char *getSignerName();
+  const char *getSerialNumber();
   const char *getSubjectDN();
+  time_t getSignerCertNotBefore();
+  time_t getSignerCertNotAfter();
   int getHashAlgorithm(); // Returns a NSS3 HASH_HashType or -1 if compiled without NSS3
   time_t getSigningTime();
   bool isSubfilterSupported() { return sig_subfilter_supported; }
@@ -57,6 +60,9 @@ public:
   void setSignatureValStatus(enum SignatureValidationStatus );
   void setCertificateValStatus(enum CertificateValidationStatus );
   void setSignerName(char *);
+  void setSerialNumber(char *);
+  void setSignerCertNotBefore(time_t);
+  void setSignerCertNotAfter(time_t);
   void setSubjectDN(const char *);
   void setHashAlgorithm(int);
   void setSigningTime(time_t);
@@ -69,6 +75,9 @@ private:
   SignatureValidationStatus sig_status;
   CertificateValidationStatus cert_status;
   char *signer_name;
+  char *serial_number;
+  time_t signer_cert_not_before;
+  time_t signer_cert_not_after;
   const char *subject_dn;
   int hash_type;
   time_t signing_time;
