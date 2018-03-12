@@ -18,9 +18,11 @@
 #include "SignatureHandler.h"
 #include "goo/gmem.h"
 #include <secmod.h>
+#include <seccomon.h>
 
 #include <dirent.h>
 #include <Error.h>
+#include <secder.h>
 
 unsigned int SignatureHandler::digestLength(SECOidTag digestAlgId)
 {
@@ -48,6 +50,32 @@ char *SignatureHandler::getSignerName()
   return CERT_GetCommonName(&cert->subject);
 }
 
+char *SignatureHandler::getSerialNumber()
+{
+  if (!CMSSignerInfo)
+      return nullptr;
+
+  CERTCertificate *cert = NSS_CMSSignerInfo_GetSigningCertificate(CMSSignerInfo, CERT_GetDefaultCertDB());
+  if (!cert)
+    return nullptr;
+
+  char* serial = new char[40];
+
+  {
+    unsigned int i;
+    for (i = 0; i < cert->serialNumber.len; ++i) {
+      unsigned char *chardata = cert->serialNumber.data;
+      unsigned char ch = *(chardata + i);
+
+      char test[4];
+      sprintf(test, "%02X", ch);
+      strcat(serial, test);
+    }
+  }
+
+  return serial;
+}
+
 const char * SignatureHandler::getSignerSubjectDN()
 {
   if (!CMSSignerInfo)
@@ -57,6 +85,54 @@ const char * SignatureHandler::getSignerSubjectDN()
   if (!cert)
     return nullptr;
   return cert->subjectName;
+}
+
+time_t parseDate(SECItem);
+
+time_t parseDate(SECItem date)
+{
+  PRTime time;
+  SECStatus rv;
+
+  switch (date.type) {
+    case siUTCTime:
+      rv = DER_UTCTimeToTime(&time, &date);
+      break;
+    case siGeneralizedTime:
+      rv = DER_GeneralizedTimeToTime(&time, &date);
+      break;
+    default:
+      return 0;
+  }
+
+  if (rv != SECSuccess)
+    return 0;
+  return static_cast<time_t>(time/1000000);
+}
+
+
+time_t SignatureHandler::getSignerCertNotBefore()
+{
+  if (!CMSSignerInfo)
+    return 0;
+
+  CERTCertificate *cert = NSS_CMSSignerInfo_GetSigningCertificate(CMSSignerInfo, CERT_GetDefaultCertDB());
+  if (!cert)
+    return 0;
+
+  return parseDate(cert->validity.notBefore);
+}
+
+time_t SignatureHandler::getSignerCertNotAfter()
+{
+  if (!CMSSignerInfo)
+    return 0;
+
+  CERTCertificate *cert = NSS_CMSSignerInfo_GetSigningCertificate(CMSSignerInfo, CERT_GetDefaultCertDB());
+  if (!cert)
+    return 0;
+
+  return parseDate(cert->validity.notAfter);
 }
 
 HASH_HashType SignatureHandler::getHashAlgorithm()
