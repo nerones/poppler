@@ -63,13 +63,18 @@ char *SignatureHandler::getSerialNumber()
 
   {
     unsigned int i;
+    unsigned char *chardata = cert->serialNumber.data;
+
     for (i = 0; i < cert->serialNumber.len; ++i) {
-      unsigned char *chardata = cert->serialNumber.data;
       unsigned char ch = *(chardata + i);
 
-      char test[4];
+      char test[3];
       sprintf(test, "%02X", ch);
-      strcat(serial, test);
+      if (i != 0) {
+        strcat(serial, test);
+      } else {
+        strcpy(serial, test);
+      }
     }
   }
 
