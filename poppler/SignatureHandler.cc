@@ -472,15 +472,15 @@ CertificateValidationStatus SignatureHandler::validateCertificate(time_t validat
     vTime = 1000000*(PRTime)validation_time;
   CERTValInParam inParams[3];
   inParams[0].type = cert_pi_revocationFlags;
-  inParams[0].value.pointer.revocation = CERT_GetClassicOCSPEnabledSoftFailurePolicy();
+  inParams[0].value.pointer.revocation = CERT_GetClassicOCSPDisabledPolicy();
   inParams[1].type = cert_pi_date;
   inParams[1].value.scalar.time = vTime;
   inParams[2].type = cert_pi_end;
 
   CERT_PKIXVerifyCert(cert, certificateUsageEmailSigner, inParams, nullptr,
                 CMSSignerInfo->cmsg->pwfn_arg);
-
-  switch(PORT_GetError())
+  int portError = PORT_GetError();
+  switch(portError)
   {
     // 0 not defined in SECErrorCodes, it means success for this purpose.
     case 0:
@@ -497,6 +497,9 @@ CertificateValidationStatus SignatureHandler::validateCertificate(time_t validat
 
     case SEC_ERROR_EXPIRED_CERTIFICATE:
       return CERTIFICATE_EXPIRED;
+
+    case SEC_ERROR_EXPIRED_ISSUER_CERTIFICATE:
+      return CERTIFICATE_ISSUER_EXPIRED;
   }
 
   return CERTIFICATE_GENERIC_ERROR;

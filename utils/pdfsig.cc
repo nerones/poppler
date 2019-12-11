@@ -83,6 +83,9 @@ static const char * getReadableCertState(CertificateValidationStatus cert_vs)
     case CERTIFICATE_NOT_VERIFIED:
       return "Certificate has not yet been verified.";
 
+    case CERTIFICATE_ISSUER_EXPIRED:
+      return "Certificate issuer has expired";
+
     default:
       return "Unknown issue with Certificate or corrupted data.";
   }
